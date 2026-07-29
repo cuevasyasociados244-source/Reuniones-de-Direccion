@@ -161,10 +161,21 @@ async function main() {
     },
   });
 
-  // Reconocimientos recientes (solo-lectura en v1)
+  // Reconocimientos (muro): posts con likes y comentarios
   await prisma.recognition.deleteMany();
-  await prisma.recognition.create({ data: { autorId: usuariosPorSlug["ana"], mensaje: "¡Felicidades! Cumplió al 100% sus compromisos del mes.", fecha: new Date("2025-06-02T00:00:00Z") } });
-  await prisma.recognition.create({ data: { autorId: usuariosPorSlug["jose"], mensaje: "Gran trabajo en la implementación de los reportes.", fecha: new Date("2025-05-31T00:00:00Z") } });
+  const post1 = await prisma.recognition.create({
+    data: {
+      autorId: usuariosPorSlug["guillermo"],
+      mensaje: "Quiero reconocer a todo el equipo de Operaciones por su compromiso y resultados este mes. ¡Sigamos así!",
+      tipo: "reconocimiento",
+      fecha: new Date("2026-07-20T00:00:00Z"),
+      likes: { create: [{ userId: usuariosPorSlug["maria"] }, { userId: usuariosPorSlug["ana"] }] },
+      comentarios: { create: [{ autorId: usuariosPorSlug["maria"], texto: "¡Gracias Guillermo! Equipo increíble." }] },
+    },
+  });
+  void post1;
+  await prisma.recognition.create({ data: { autorId: usuariosPorSlug["ana"], mensaje: "¡Felicidades al equipo! Cumplimos al 100% los compromisos del mes.", fecha: new Date("2026-07-15T00:00:00Z") } });
+  await prisma.recognition.create({ data: { autorId: usuariosPorSlug["jose"], mensaje: "Gran trabajo en la implementación de los reportes semanales.", fecha: new Date("2026-07-10T00:00:00Z") } });
 
   console.log("Listo. Usuarios de acceso (usuario / contraseña):");
   for (const p of PERSONAS) console.log(`  ${p.usuario} / ${p.password}  (${p.puesto})`);

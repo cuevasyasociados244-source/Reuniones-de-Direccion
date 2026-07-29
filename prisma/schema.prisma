@@ -104,6 +104,8 @@ model User {
   kpis                Kpi[]         @relation("KpiResponsable")
   reunionesAsistidas  Meeting[]     @relation("MeetingAttendees")
   reconocimientos     Recognition[] @relation("RecognitionAutor")
+  reconocimientoLikes RecognitionLike[]    @relation("RecognitionLikeUser")
+  reconocimientoComentarios RecognitionComment[] @relation("RecognitionComentAutor")
 
   @@index([area])
 }
@@ -315,8 +317,36 @@ model Recognition {
   autorId   String
   autor     User     @relation("RecognitionAutor", fields: [autorId], references: [id])
   mensaje   String
+  tipo      String   @default("reconocimiento") // insignia / agradecimiento / logro…
   fecha     DateTime @default(now())
   createdAt DateTime @default(now())
 
+  likes      RecognitionLike[]
+  comentarios RecognitionComment[]
+
   @@index([autorId])
+}
+
+model RecognitionLike {
+  id            String      @id @default(cuid())
+  recognitionId String
+  recognition   Recognition @relation(fields: [recognitionId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation("RecognitionLikeUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([recognitionId, userId])
+  @@index([recognitionId])
+}
+
+model RecognitionComment {
+  id            String      @id @default(cuid())
+  recognitionId String
+  recognition   Recognition @relation(fields: [recognitionId], references: [id], onDelete: Cascade)
+  autorId       String
+  autor         User        @relation("RecognitionComentAutor", fields: [autorId], references: [id])
+  texto         String
+  createdAt     DateTime    @default(now())
+
+  @@index([recognitionId])
 }
