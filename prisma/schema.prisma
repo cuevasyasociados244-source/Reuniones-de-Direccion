@@ -1,0 +1,322 @@
+// Integra One RCA — modelo de datos de producción.
+// Basado en el §5 del brief técnico y en las formas reales del prototipo (prototype_61.html).
+// Reglas de negocio (avance fijo, estado de KPI calculado, bajas lógicas, etc.) se aplican
+// en la capa de servicio (src/lib); aquí se modela la estructura.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooled (runtime)
+  directUrl = env("DIRECT_URL")   // directa (migraciones)
+}
+
+// ------------------------------------------------------------------
+// Enums
+// ------------------------------------------------------------------
+
+enum CommitmentStatus {
+  NO_INICIADO
+  PROGRESO
+  COMPLETADO
+  VENCIDO
+}
+
+enum Priority {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+// Resultado registrado al cerrar un compromiso (pilar "Consecuencias").
+enum CommitmentResult {
+  SI
+  PARCIALMENTE
+  NO
+}
+
+// Estado de un KPI — SIEMPRE calculado a partir del % de cumplimiento, nunca capturado.
+enum KpiStatus {
+  OBJETIVO // >= 80
+  RIESGO   // 50–79
+  FUERA    // < 50
+}
+
+enum KpiSense {
+  MAYOR // mayor es mejor
+  MENOR // menor es mejor
+}
+
+enum CaptureMethod {
+  MANUAL
+  GOOGLE_SHEETS
+  ERP
+}
+
+enum Frequency {
+  SEMANAL
+  MENSUAL
+  TRIMESTRAL
+  SEMESTRAL
+  ANUAL
+}
+
+enum MeetingStatus {
+  NO_INICIADA
+  PROGRESO
+  REALIZADA
+}
+
+enum MeetingType {
+  ORDINARIA
+  EXTRAORDINARIA
+}
+
+enum AgendaItemStatus {
+  NO_INICIADO
+  PROGRESO
+  COMPLETADO
+}
+
+// ------------------------------------------------------------------
+// Personas / Auth
+// ------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  usuario   String   @unique // identificador de inicio de sesión (login)
+  nombre    String
+  // "puesto" es el rol de negocio; de aquí se DERIVA el alcance (scope):
+  //   contiene "Director General" -> global; contiene "Director" -> área; resto -> propio.
+  puesto    String
+  area      String // referencia por nombre al catálogo Department
+  password  String // hash bcrypt
+  iniciales String // avatar por defecto (se calcula del nombre)
+  fotoUrl   String? // sustituye a las iniciales cuando existe
+  activo    Boolean  @default(true) // baja lógica: nunca se borra
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sesiones            Session[]
+  compromisos         Commitment[]  @relation("CommitmentResponsable")
+  kpis                Kpi[]         @relation("KpiResponsable")
+  reunionesAsistidas  Meeting[]     @relation("MeetingAttendees")
+  reconocimientos     Recognition[] @relation("RecognitionAutor")
+
+  @@index([area])
+}
+
+model Session {
+  id       String   @id @default(cuid())
+  token    String   @unique
+  userId   String
+  usuario  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiraEn DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ------------------------------------------------------------------
+// Catálogo de departamentos
+// ------------------------------------------------------------------
+
+model Department {
+  id        String   @id @default(cuid())
+  nombre    String   @unique
+  activo    Boolean  @default(true) // baja lógica; quitar uno no cambia el área de quien ya lo tiene
+  createdAt DateTime @default(now())
+}
+
+// ------------------------------------------------------------------
+// Compromisos
+// ------------------------------------------------------------------
+
+model Commitment {
+  id            Int              @id @default(autoincrement())
+  titulo        String
+  descripcion   String           @default("")
+  area          String
+  responsableId String
+  responsable   User             @relation("CommitmentResponsable", fields: [responsableId], references: [id])
+  vence         DateTime
+  // Avance capturado SOLO manualmente, valores fijos 0/25/50/75/100, solo por el responsable,
+  // solo en el módulo Compromisos. Validado en la capa de servicio.
+  avance        Int              @default(0)
+  estado        CommitmentStatus @default(NO_INICIADO)
+  indicador     String           @default("") // cómo se mide el cumplimiento
+  prioridad     Priority         @default(MEDIA)
+
+  // Campos que se llenan al REGISTRAR RESULTADO (cierre del compromiso)
+  resultado        CommitmentResult?
+  causa            String?
+  accionCorrectiva String?
+  nuevaFecha       DateTime?
+  completadoEn     DateTime? // fecha en que se marcó como cumplido (para "Cumplimiento en tiempo")
+
+  // Un compromiso puede haberse generado dentro de una reunión de dirección
+  meetingId Int?
+  meeting   Meeting? @relation(fields: [meetingId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([responsableId])
+  @@index([area])
+  @@index([meetingId])
+}
+
+// ------------------------------------------------------------------
+// KPIs
+// ------------------------------------------------------------------
+
+model Kpi {
+  id             Int           @id @default(autoincrement())
+  nombre         String
+  codigo         String        @unique
+  area           String
+  responsableId  String?
+  responsable    User?         @relation("KpiResponsable", fields: [responsableId], references: [id])
+  frecuencia     Frequency     @default(MENSUAL)
+  unidadMedida   String        @default("")
+  tipoCalculo    String        @default("") // p. ej. "Promedio del periodo", "Fórmula personalizada"
+  meta           String        @default("") // texto: "100%", "≤ 20%", "> 0"
+  sentido        KpiSense       @default(MAYOR)
+  valorActual    String        @default("")
+  pct            Int           @default(0) // % de cumplimiento
+  estado         KpiStatus     @default(FUERA) // CALCULADO desde pct; nunca manual
+  fuenteDatos    String        @default("")
+  metodoCaptura  CaptureMethod @default(MANUAL)
+  activo         Boolean       @default(true)
+  ultimaSync     DateTime? // solo aplica a método GOOGLE_SHEETS / ERP
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([area])
+  @@index([responsableId])
+}
+
+// Periodo "actual" del tablero de KPIs (singleton). "Cerrar mes" lo avanza.
+model Periodo {
+  id   Int @id @default(1)
+  mes  Int // 1..12
+  anio Int
+}
+
+// Snapshot mensual congelado por la acción "Cerrar mes" (solo alcance global).
+model KpiSnapshot {
+  id        String            @id @default(cuid())
+  mes       Int // 1..12
+  anio      Int
+  createdAt DateTime          @default(now())
+  items     KpiSnapshotItem[]
+
+  @@unique([mes, anio])
+}
+
+model KpiSnapshotItem {
+  id         String      @id @default(cuid())
+  snapshotId String
+  snapshot   KpiSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  // Copia congelada de los valores del KPI en ese momento
+  codigo     String
+  nombre     String
+  area       String
+  meta       String
+  valorActual String
+  pct        Int
+  estado     KpiStatus
+
+  @@index([snapshotId])
+}
+
+// ------------------------------------------------------------------
+// Reuniones de Dirección
+// ------------------------------------------------------------------
+
+model Meeting {
+  id         Int           @id @default(autoincrement())
+  titulo     String
+  fecha      DateTime
+  hora       String        @default("")
+  lugar      String        @default("") // lugar o enlace
+  tipo       MeetingType   @default(ORDINARIA)
+  frecuencia Frequency     @default(MENSUAL)
+  estado     MeetingStatus @default(NO_INICIADA)
+  objetivo   String        @default("")
+  // Copia de trabajo de la minuta (lo que se edita en la pestaña Minuta antes de archivar)
+  notas      String        @default("")
+  riesgos    String        @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agenda       AgendaItem[]
+  asistentes   User[]       @relation("MeetingAttendees")
+  compromisos  Commitment[]
+  minutas      Minute[]
+
+  @@index([fecha])
+}
+
+model AgendaItem {
+  id          Int              @id @default(autoincrement())
+  meetingId   Int
+  meeting     Meeting          @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  titulo      String
+  descripcion String           @default("")
+  duracion    Int              @default(0) // minutos
+  estado      AgendaItemStatus @default(NO_INICIADO)
+  orden       Int              @default(0)
+
+  @@index([meetingId])
+}
+
+// Minuta archivada (cada "Guardar minuta" crea una entrada en el historial de minutas).
+model Minute {
+  id        String        @id @default(cuid())
+  meetingId Int
+  meeting   Meeting       @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  notas     String        @default("")
+  riesgos   String        @default("")
+  createdAt DateTime      @default(now())
+  imagenes  MinuteImage[]
+
+  @@index([meetingId])
+}
+
+model MinuteImage {
+  id       String @id @default(cuid())
+  minuteId String
+  minute   Minute @relation(fields: [minuteId], references: [id], onDelete: Cascade)
+  url      String
+
+  @@index([minuteId])
+}
+
+// Temas recurrentes de la agenda ("Calendario" del módulo de Reuniones).
+model AgendaTemplateItem {
+  id         String    @id @default(cuid())
+  titulo     String
+  frecuencia Frequency @default(MENSUAL)
+  orden      Int       @default(0)
+}
+
+// ------------------------------------------------------------------
+// Reconocimientos (v1: solo-lectura para la lista "recientes" de Inicio;
+// el muro social interactivo —likes/comentarios— es de una fase posterior).
+// ------------------------------------------------------------------
+
+model Recognition {
+  id        String   @id @default(cuid())
+  autorId   String
+  autor     User     @relation("RecognitionAutor", fields: [autorId], references: [id])
+  mensaje   String
+  fecha     DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([autorId])
+}

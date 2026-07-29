@@ -1,0 +1,22 @@
+/node_modules
+/.next
+/out
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# Env
+.env
+.env*.local
+
+# Prisma
+/prisma/*.db
+/prisma/*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (fotos de personas, imágenes de minutas) — no versionar
+/uploads
+/public/uploads

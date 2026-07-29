@@ -1,0 +1,19 @@
+# Postgres local para desarrollo. Requiere Docker Desktop.
+#   docker compose up -d
+# Deja la DATABASE_URL de .env apuntando a este servicio.
+services:
+  db:
+    image: postgres:16
+    container_name: integra-rca-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: integra
+      POSTGRES_PASSWORD: integra
+      POSTGRES_DB: integra_rca
+    ports:
+      - "5432:5432"
+    volumes:
+      - integra_rca_pgdata:/var/lib/postgresql/data
+
+volumes:
+  integra_rca_pgdata:
