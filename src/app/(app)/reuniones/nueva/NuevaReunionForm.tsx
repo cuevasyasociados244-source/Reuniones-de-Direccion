@@ -105,10 +105,10 @@ export default function NuevaReunionForm({ personas }: { personas: Persona[] }) 
         <div className="space-y-2">
           {agenda.map((t, i) => (
             <div key={i} className="flex items-center gap-2">
-              <input value={t.titulo} onChange={(e) => setTema(i, { titulo: e.target.value })} placeholder={`Tema ${i + 1}`} className={`${inp} flex-1`} />
-              <input type="number" min={0} value={t.duracion} onChange={(e) => setTema(i, { duracion: Number(e.target.value) })} className={`${inp} w-20`} title="minutos" />
+              <input value={t.titulo} onChange={(e) => setTema(i, { titulo: e.target.value })} placeholder={`Tema ${i + 1}`} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-info focus:outline-none" />
+              <input type="number" min={0} value={t.duracion} onChange={(e) => setTema(i, { duracion: Number(e.target.value) })} className="w-20 shrink-0 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-info focus:outline-none" title="minutos" />
               <span className="text-xs text-gray-400">min</span>
-              <button onClick={() => removeTema(i)} className="text-danger text-lg leading-none px-1" title="Quitar">×</button>
+              <button type="button" onClick={() => removeTema(i)} className="text-danger text-lg leading-none px-1" title="Quitar">×</button>
             </div>
           ))}
           {agenda.length === 0 && <p className="text-xs text-gray-400">Sin temas. Agrega al menos uno.</p>}
