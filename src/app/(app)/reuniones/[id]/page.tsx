@@ -18,6 +18,7 @@ export default async function ReunionPage({ params }: { params: Promise<{ id: st
         agenda: { orderBy: { orden: "asc" } },
         asistentes: { select: { id: true } },
         compromisos: { include: { responsable: true }, orderBy: { vence: "asc" } },
+        imagenes: { orderBy: { createdAt: "asc" } },
         _count: { select: { minutas: true } },
       },
     }),
@@ -48,6 +49,7 @@ export default async function ReunionPage({ params }: { params: Promise<{ id: st
       estado: a.estado,
     })),
     asistentesIds: reunion.asistentes.map((a) => a.id),
+    imagenes: reunion.imagenes.map((i) => ({ id: i.id, url: i.url })),
     compromisos: reunion.compromisos.map((c) => ({
       id: c.id,
       titulo: c.titulo,

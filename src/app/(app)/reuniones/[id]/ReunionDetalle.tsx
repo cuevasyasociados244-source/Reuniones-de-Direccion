@@ -9,7 +9,10 @@ import {
   guardarEnHistorial,
   toggleAsistente,
   crearCompromisoEnReunion,
+  subirImagenMinuta,
+  borrarImagenMinuta,
 } from "@/lib/acciones/reuniones";
+import { archivoUrl } from "@/lib/archivoUrl";
 
 type AgendaVM = { id: number; titulo: string; descripcion: string; duracion: number; estado: string };
 type CompromisoVM = { id: number; titulo: string; responsableNombre: string; vence: string; estado: string };
@@ -29,6 +32,7 @@ export type ReunionVM = {
   agenda: AgendaVM[];
   asistentesIds: string[];
   compromisos: CompromisoVM[];
+  imagenes: { id: string; url: string }[];
 };
 type Persona = { id: string; nombre: string; puesto: string };
 
@@ -259,6 +263,27 @@ function TabMinuta({ reunion }: { reunion: ReunionVM }) {
       <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1">Riesgos y problemas</label>
         <textarea value={riesgos} onChange={(e) => setRiesgos(e.target.value)} rows={3} className={inp} placeholder="Riesgos identificados y problemas críticos…" />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">Imágenes adjuntas</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {reunion.imagenes.map((img) => (
+            <div key={img.id} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={archivoUrl(img.url)} alt="Adjunto de minuta" className="h-20 w-20 rounded-lg object-cover border border-gray-200" />
+              <form action={borrarImagenMinuta.bind(null, img.id)}>
+                <button className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-white border border-gray-200 text-danger text-xs leading-none" title="Quitar">×</button>
+              </form>
+            </div>
+          ))}
+          {reunion.imagenes.length === 0 && <span className="text-xs text-gray-400">Sin imágenes.</span>}
+        </div>
+        <form action={subirImagenMinuta}>
+          <input type="hidden" name="meetingId" value={reunion.id} />
+          <input type="file" name="imagen" accept="image/*" onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            className="text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 file:font-semibold hover:file:bg-gray-200" />
+        </form>
       </div>
 
       {msg && <p className="text-sm text-success bg-success-bg rounded-lg px-3 py-2">{msg}</p>}

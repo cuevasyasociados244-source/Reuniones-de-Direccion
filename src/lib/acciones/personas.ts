@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
 import { requireGlobal, getSessionUser } from "@/lib/session";
+import { subirArchivo, borrarArchivo } from "@/lib/blob";
 
 export type PersonaState = { error?: string; ok?: string };
 
@@ -98,6 +99,24 @@ export async function darDeBaja(formData: FormData): Promise<void> {
   await prisma.user.update({ where: { id }, data: { activo: false } });
   await prisma.session.deleteMany({ where: { userId: id } });
   revalidatePath("/personas");
+}
+
+// Subir/cambiar la foto de una persona (solo alcance global).
+export async function subirFotoPersona(formData: FormData): Promise<void> {
+  await requireGlobal();
+  const id = String(formData.get("userId") || "");
+  const foto = formData.get("foto") as File | null;
+  if (!id || !foto || foto.size === 0) return;
+  if (!foto.type.startsWith("image/")) return;
+  if (foto.size > 5 * 1024 * 1024) return; // 5 MB
+
+  const actual = await prisma.user.findUnique({ where: { id }, select: { fotoUrl: true } });
+  const { url } = await subirArchivo("fotos", foto);
+  await prisma.user.update({ where: { id }, data: { fotoUrl: url } });
+  if (actual?.fotoUrl) await borrarArchivo(actual.fotoUrl);
+
+  revalidatePath("/personas");
+  revalidatePath("/", "layout");
 }
 
 export async function reactivar(formData: FormData): Promise<void> {

@@ -106,6 +106,7 @@ model User {
   reconocimientos     Recognition[] @relation("RecognitionAutor")
   reconocimientoLikes RecognitionLike[]    @relation("RecognitionLikeUser")
   reconocimientoComentarios RecognitionComment[] @relation("RecognitionComentAutor")
+  documentos          Documento[]   @relation("DocumentoSubidoPor")
 
   @@index([area])
 }
@@ -260,6 +261,7 @@ model Meeting {
   asistentes   User[]       @relation("MeetingAttendees")
   compromisos  Commitment[]
   minutas      Minute[]
+  imagenes     MeetingImage[]
 
   @@index([fecha])
 }
@@ -297,6 +299,17 @@ model MinuteImage {
   url      String
 
   @@index([minuteId])
+}
+
+// Imágenes adjuntas a la minuta de una reunión (guardadas en Vercel Blob privado).
+model MeetingImage {
+  id        String   @id @default(cuid())
+  meetingId Int
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  url       String
+  createdAt DateTime @default(now())
+
+  @@index([meetingId])
 }
 
 // Temas recurrentes de la agenda ("Calendario" del módulo de Reuniones).
@@ -337,6 +350,22 @@ model RecognitionLike {
 
   @@unique([recognitionId, userId])
   @@index([recognitionId])
+}
+
+// Documentos: repositorio de archivos (guardados en Vercel Blob privado).
+model Documento {
+  id          String   @id @default(cuid())
+  nombre      String // nombre visible del documento
+  url         String // URL del blob (privada)
+  pathname    String
+  contentType String   @default("")
+  tamano      Int      @default(0) // bytes
+  area        String   @default("")
+  subidoPorId String?
+  subidoPor   User?    @relation("DocumentoSubidoPor", fields: [subidoPorId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model RecognitionComment {

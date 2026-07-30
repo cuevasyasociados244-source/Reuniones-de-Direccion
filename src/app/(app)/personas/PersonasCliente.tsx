@@ -6,8 +6,10 @@ import {
   restablecerPassword,
   darDeBaja,
   reactivar,
+  subirFotoPersona,
   type PersonaState,
 } from "@/lib/acciones/personas";
+import { archivoUrl } from "@/lib/archivoUrl";
 
 export type PersonaVM = {
   id: string;
@@ -104,14 +106,25 @@ function PersonaCard({ persona, esYo }: { persona: PersonaVM; esYo: boolean }) {
   return (
     <div className="rounded-card border border-gray-200 bg-white p-5">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 shrink-0 rounded-full bg-info flex items-center justify-center text-white font-bold overflow-hidden">
-          {persona.fotoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={persona.fotoUrl} alt={persona.nombre} className="h-full w-full object-cover" />
-          ) : (
-            persona.iniciales
-          )}
-        </div>
+        <form action={subirFotoPersona} className="relative group shrink-0">
+          <input type="hidden" name="userId" value={persona.id} />
+          <label className="block h-12 w-12 rounded-full bg-info overflow-hidden cursor-pointer flex items-center justify-center text-white font-bold" title="Cambiar foto">
+            {persona.fotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={archivoUrl(persona.fotoUrl)} alt={persona.nombre} className="h-full w-full object-cover" />
+            ) : (
+              persona.iniciales
+            )}
+            <input
+              type="file"
+              name="foto"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            />
+          </label>
+          <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white border border-gray-200 text-[10px] flex items-center justify-center text-gray-500">✎</span>
+        </form>
         <div className="min-w-0">
           <div className="font-semibold text-gray-900 truncate">{persona.nombre}</div>
           <div className="text-xs text-gray-500 truncate">{persona.puesto}</div>

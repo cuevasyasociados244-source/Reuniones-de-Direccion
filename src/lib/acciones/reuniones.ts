@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireGlobal } from "@/lib/session";
+import { subirArchivo, borrarArchivo } from "@/lib/blob";
 import {
   MeetingType,
   MeetingStatus,
@@ -157,6 +158,29 @@ export async function toggleAsistente(
   });
   revalidatePath(`/reuniones/${meetingId}`);
   return { ok: "Asistentes actualizados." };
+}
+
+// ---- Imágenes adjuntas a la minuta ----
+export async function subirImagenMinuta(formData: FormData): Promise<void> {
+  await requireGlobal();
+  const meetingId = Number(formData.get("meetingId"));
+  const imagen = formData.get("imagen") as File | null;
+  if (!meetingId || !imagen || imagen.size === 0) return;
+  if (!imagen.type.startsWith("image/")) return;
+  if (imagen.size > 8 * 1024 * 1024) return; // 8 MB
+
+  const { url } = await subirArchivo("minutas", imagen);
+  await prisma.meetingImage.create({ data: { meetingId, url } });
+  revalidatePath(`/reuniones/${meetingId}`);
+}
+
+export async function borrarImagenMinuta(id: string): Promise<void> {
+  await requireGlobal();
+  const img = await prisma.meetingImage.findUnique({ where: { id } });
+  if (!img) return;
+  await borrarArchivo(img.url);
+  await prisma.meetingImage.delete({ where: { id } });
+  revalidatePath(`/reuniones/${img.meetingId}`);
 }
 
 // ---- Temas recurrentes de la agenda (pestaña Calendario) ----

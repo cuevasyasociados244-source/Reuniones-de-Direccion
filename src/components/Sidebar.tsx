@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NavItem } from "@/lib/navegacion";
 import { cerrarSesion } from "@/lib/acciones/auth";
+import { archivoUrl } from "@/lib/archivoUrl";
 
 type Props = {
   items: NavItem[];
@@ -50,7 +51,7 @@ export default function Sidebar({ items, usuario }: Props) {
           <div className="h-8 w-8 rounded-full bg-info flex items-center justify-center text-white text-xs font-bold overflow-hidden">
             {usuario.fotoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={usuario.fotoUrl} alt={usuario.nombre} className="h-full w-full object-cover" />
+              <img src={archivoUrl(usuario.fotoUrl)} alt={usuario.nombre} className="h-full w-full object-cover" />
             ) : (
               usuario.iniciales
             )}
