@@ -175,7 +175,7 @@ function AcuerdosSection({ acuerdos }: { acuerdos: AcuerdoVM[] }) {
 
 function StatCard({ label, value, color, tropical }: { label: string; value: string; color?: string; tropical?: boolean }) {
   return (
-    <div className={`rounded-card border p-4 ${tropical ? "bg-brand-tropical text-white border-transparent" : "bg-white border-gray-200"}`}>
+    <div className={`rounded-card border p-4 ${tropical ? "bg-brand-tropical text-white border-transparent" : "bg-[#eef4ff] border-[#dbe6fb]"}`}>
       <div className={`text-xs ${tropical ? "text-white/80" : "text-gray-500"}`}>{label}</div>
       <div className="mt-1 text-2xl font-extrabold" style={{ color: tropical ? "#fff" : color ?? "#0f172a" }}>
         {value}
@@ -322,7 +322,7 @@ function Historico({ data }: { data: KpisData }) {
 
 function TablaKpis({ kpis, sinBorde, ocultarArea }: { kpis: KpiVM[]; sinBorde?: boolean; ocultarArea?: boolean }) {
   return (
-    <div className={sinBorde ? "" : "rounded-card border border-gray-200 bg-white overflow-hidden"}>
+    <div className={sinBorde ? "" : "rounded-card border border-[#dbe6fb] bg-[#eef4ff] overflow-hidden"}>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-gray-500 border-b border-gray-100">
@@ -370,7 +370,7 @@ function TablaKpis({ kpis, sinBorde, ocultarArea }: { kpis: KpiVM[]; sinBorde?: 
 
 function Card({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-card border border-gray-200 bg-white p-4">
+    <div className="rounded-card border border-[#dbe6fb] bg-[#eef4ff] p-4">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">{titulo}</h3>
       {children}
     </div>

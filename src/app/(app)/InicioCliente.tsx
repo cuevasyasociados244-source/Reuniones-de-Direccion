@@ -138,8 +138,8 @@ function ColumnaInicio({
   onRegistrar?: (f: FilaVM) => void;
 }) {
   return (
-    <div className="rounded-card border border-gray-200 bg-white overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100" style={{ borderTop: `3px solid ${color}` }}>
+    <div className="rounded-card border border-[#dbe6fb] bg-[#eef4ff] overflow-hidden">
+      <div className="px-4 py-3 border-b border-[#dbe6fb]" style={{ borderTop: `3px solid ${color}` }}>
         <div className="flex items-center gap-2">
           <h4 className="font-semibold text-gray-900 text-sm">{titulo}</h4>
           <span className="text-xs font-bold text-white rounded-full px-2 py-0.5" style={{ background: color }}>
@@ -151,7 +151,7 @@ function ColumnaInicio({
       <div className="p-3 space-y-3">
         {filas.length === 0 && <p className="text-xs text-gray-400 py-4 text-center">{vacio}</p>}
         {filas.map((c) => (
-          <div key={c.id} className="rounded-lg border border-gray-100 p-3">
+          <div key={c.id} className="rounded-lg border border-gray-100 bg-white p-3">
             <div className="text-sm font-medium text-gray-900">{c.titulo}</div>
             <div className="text-[11px] text-gray-400 mt-0.5">
               {c.responsableNombre} · {esVencidos ? "venció" : "vence"} {c.vence}
