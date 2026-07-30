@@ -187,7 +187,7 @@ function ColumnaInicio({
 
 function Card({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-card border border-gray-200 bg-white p-4">
+    <div className="rounded-card border border-[#dbe6fb] bg-[#eef4ff] p-4">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">{titulo}</h3>
       {children}
     </div>
