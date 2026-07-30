@@ -22,12 +22,14 @@ export type IndicadorAcuerdo = {
   clave: string;
   nombre: string;
   valor: number; // valor crudo del indicador (%)
+  valorTxt: string; // "85%" o "—" cuando no hay datos
   meta: string;
   sentido: "mayor" | "menor";
   score: number; // 0–100, mayor = mejor (para el semáforo)
   nivel: Nivel;
   color: string;
   nivelTxt: string;
+  sinDatos: boolean;
 };
 
 // "en tiempo": concluido a más tardar el mismo día de su fecha compromiso.
@@ -51,6 +53,7 @@ export function indicadoresAcuerdos(cs: CommitmentLite[]): IndicadorAcuerdo[] {
   const vVencidos = pct(vencidos);
   const vReprog = pct(reprogramados);
 
+  const sinDatos = total === 0;
   const build = (
     clave: string,
     nombre: string,
@@ -59,8 +62,11 @@ export function indicadoresAcuerdos(cs: CommitmentLite[]): IndicadorAcuerdo[] {
     sentido: "mayor" | "menor",
     score: number
   ): IndicadorAcuerdo => {
+    if (sinDatos) {
+      return { clave, nombre, valor: 0, valorTxt: "—", meta, sentido, score: 0, nivel: "VERDE", color: "#94a3b8", nivelTxt: "Sin datos", sinDatos: true };
+    }
     const s = nivelSemaforo(score);
-    return { clave, nombre, valor, meta, sentido, score, nivel: s.nivel, color: s.color, nivelTxt: s.txt };
+    return { clave, nombre, valor, valorTxt: `${valor}%`, meta, sentido, score, nivel: s.nivel, color: s.color, nivelTxt: s.txt, sinDatos: false };
   };
 
   return [

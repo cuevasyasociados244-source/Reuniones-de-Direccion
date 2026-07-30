@@ -27,7 +27,7 @@ export type SnapshotVM = {
   items: { codigo: string; nombre: string; area: string; meta: string; valorActual: string; pct: number; estado: string }[];
 };
 
-export type AcuerdoVM = { nombre: string; valor: number; meta: string; sentido: string; color: string; nivelTxt: string };
+export type AcuerdoVM = { nombre: string; valorTxt: string; meta: string; sentido: string; color: string; nivelTxt: string };
 
 export type KpisData = {
   esGlobal: boolean;
@@ -160,7 +160,7 @@ function AcuerdosSection({ acuerdos }: { acuerdos: AcuerdoVM[] }) {
           <div key={i} className="rounded-lg border border-gray-100 p-4" style={{ borderTop: `3px solid ${a.color}` }}>
             <div className="text-xs text-gray-500 leading-tight min-h-[2.4em]">{a.nombre}</div>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-2xl font-extrabold" style={{ color: a.color }}>{a.valor}%</span>
+              <span className="text-2xl font-extrabold" style={{ color: a.color }}>{a.valorTxt}</span>
               <span className="text-[11px] text-gray-400">meta {a.meta}</span>
             </div>
             <span className="mt-2 inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${a.color}22`, color: a.color }}>

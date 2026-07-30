@@ -73,7 +73,7 @@ export default async function InicioPage() {
   void misRecon;
   const indicadores = indicadoresAcuerdos(
     compromisos.map((c) => ({ estado: c.estado, vence: c.vence, completadoEn: c.completadoEn, nuevaFecha: c.nuevaFecha }))
-  ).map((i) => ({ nombre: i.nombre, valor: i.valor, meta: i.meta, color: i.color, nivelTxt: i.nivelTxt }));
+  ).map((i) => ({ nombre: i.nombre, valorTxt: i.valorTxt, meta: i.meta, color: i.color, nivelTxt: i.nivelTxt }));
 
   const fechaHoy = `${hoy.getUTCDate()} de ${MES_LARGO[hoy.getUTCMonth()]} de ${hoy.getUTCFullYear()}`;
   const scopeLabel = user.scope === "global" ? "global" : user.scope === "area" ? `área (${user.area})` : "personal";

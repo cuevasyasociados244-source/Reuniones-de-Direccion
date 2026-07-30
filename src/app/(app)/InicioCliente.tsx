@@ -19,7 +19,7 @@ export type InicioData = {
   scopeLabel: string;
   area: string;
   fechaHoy: string;
-  indicadores: { nombre: string; valor: number; meta: string; color: string; nivelTxt: string }[];
+  indicadores: { nombre: string; valorTxt: string; meta: string; color: string; nivelTxt: string }[];
   porArea: { label: string; value: number }[];
   tendencia: { label: string; value: number }[];
   enTiempo: FilaVM[];
@@ -47,7 +47,7 @@ export default function InicioCliente({ data }: { data: InicioData }) {
           <div key={i} className="rounded-card border border-gray-200 bg-white p-4" style={{ borderTop: `3px solid ${ind.color}` }}>
             <div className="text-xs text-gray-500 leading-tight min-h-[2.4em]">{ind.nombre}</div>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-2xl font-extrabold" style={{ color: ind.color }}>{ind.valor}%</span>
+              <span className="text-2xl font-extrabold" style={{ color: ind.color }}>{ind.valorTxt}</span>
               <span className="text-[11px] text-gray-400">meta {ind.meta}</span>
             </div>
             <span className="mt-2 inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${ind.color}22`, color: ind.color }}>

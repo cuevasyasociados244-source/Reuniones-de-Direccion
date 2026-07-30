@@ -102,7 +102,7 @@ export default async function KpisPage() {
   const data: KpisData = {
     esGlobal,
     periodoLabel: periodo ? mesLabel(periodo.mes, periodo.anio) : "—",
-    acuerdos: acuerdos.map((i) => ({ nombre: i.nombre, valor: i.valor, meta: i.meta, sentido: i.sentido, color: i.color, nivelTxt: i.nivelTxt })),
+    acuerdos: acuerdos.map((i) => ({ nombre: i.nombre, valorTxt: i.valorTxt, meta: i.meta, sentido: i.sentido, color: i.color, nivelTxt: i.nivelTxt })),
     stats: { cumplimientoGeneral, objetivo, riesgo, fuera, total },
     porArea,
     top5,
