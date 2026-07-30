@@ -44,7 +44,7 @@ export default function InicioCliente({ data }: { data: InicioData }) {
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 mb-6">
         {data.indicadores.map((ind, i) => (
-          <div key={i} className="rounded-card border border-gray-200 bg-white p-4" style={{ borderTop: `3px solid ${ind.color}` }}>
+          <div key={i} className="rounded-card border border-[#dbe6fb] bg-[#eef4ff] p-4" style={{ borderTop: `3px solid ${ind.color}` }}>
             <div className="text-xs text-gray-500 leading-tight min-h-[2.4em]">{ind.nombre}</div>
             <div className="mt-1 flex items-baseline gap-2">
               <span className="text-2xl font-extrabold" style={{ color: ind.color }}>{ind.valorTxt}</span>

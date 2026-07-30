@@ -143,7 +143,7 @@ function AcuerdosSection({ acuerdos }: { acuerdos: AcuerdoVM[] }) {
     <section className="rounded-card border border-gray-200 bg-white p-5">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900">Indicadores de acuerdos · Dirección</h2>
+          <h2 className="text-sm font-semibold text-gray-900">Indicadores de compromisos · Dirección</h2>
           <p className="text-xs text-gray-500">Calculados automáticamente desde los compromisos.</p>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-gray-500">
@@ -157,7 +157,7 @@ function AcuerdosSection({ acuerdos }: { acuerdos: AcuerdoVM[] }) {
       </div>
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {acuerdos.map((a, i) => (
-          <div key={i} className="rounded-lg border border-gray-100 p-4" style={{ borderTop: `3px solid ${a.color}` }}>
+          <div key={i} className="rounded-lg border border-[#dbe6fb] bg-[#eef4ff] p-4" style={{ borderTop: `3px solid ${a.color}` }}>
             <div className="text-xs text-gray-500 leading-tight min-h-[2.4em]">{a.nombre}</div>
             <div className="mt-1 flex items-baseline gap-2">
               <span className="text-2xl font-extrabold" style={{ color: a.color }}>{a.valorTxt}</span>

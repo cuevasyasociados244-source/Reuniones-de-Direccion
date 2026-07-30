@@ -70,10 +70,10 @@ export function indicadoresAcuerdos(cs: CommitmentLite[]): IndicadorAcuerdo[] {
   };
 
   return [
-    build("cumplimiento", "Cumplimiento de acuerdos", vCumplimiento, "≥ 95%", "mayor", vCumplimiento),
+    build("cumplimiento", "Cumplimiento de compromisos", vCumplimiento, "≥ 95%", "mayor", vCumplimiento),
     build("en-tiempo", "Cumplimiento en tiempo", vEnTiempo, "≥ 90%", "mayor", vEnTiempo),
     // "menor es mejor": el score invierte el valor (menos vencidos/reprogramados → mejor).
-    build("vencidos", "Acuerdos vencidos", vVencidos, "≤ 5%", "menor", 100 - vVencidos),
-    build("reprogramados", "Acuerdos reprogramados", vReprog, "≤ 10%", "menor", 100 - vReprog),
+    build("vencidos", "Compromisos vencidos", vVencidos, "≤ 5%", "menor", 100 - vVencidos),
+    build("reprogramados", "Compromisos reprogramados", vReprog, "≤ 10%", "menor", 100 - vReprog),
   ];
 }
