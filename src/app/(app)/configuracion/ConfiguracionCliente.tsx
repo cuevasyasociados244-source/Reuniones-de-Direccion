@@ -183,7 +183,7 @@ function SyncBar({ googleSheetsCount }: { googleSheetsCount: number }) {
     <div className="rounded-lg bg-gray-50 border border-gray-100 p-3 flex items-center justify-between gap-3 flex-wrap">
       <div className="text-xs text-gray-600">
         {googleSheetsCount > 0
-          ? `${googleSheetsCount} KPI(s) con método "Google Sheets". La sincronización real es una integración pendiente.`
+          ? `${googleSheetsCount} KPI(s) con método "Google Sheets". "Sincronizar ahora" lee los valores desde tu hoja.`
           : 'Ningún KPI con método "Google Sheets" todavía.'}
         {msg && <span className="ml-2 text-success">{msg}</span>}
       </div>
@@ -227,6 +227,7 @@ function KpiModal({
     pct: kpi?.pct ?? 0,
     fuenteDatos: kpi?.fuenteDatos ?? "",
     metodoCaptura: kpi?.metodoCaptura ?? "MANUAL",
+    hojaUrl: kpi?.hojaUrl ?? "",
     activo: kpi?.activo ?? true,
   });
   const [error, setError] = useState<string | null>(null);
@@ -320,6 +321,15 @@ function KpiModal({
             <label className="block text-xs font-medium text-gray-600 mb-1">Fuente de datos</label>
             <input value={f.fuenteDatos} onChange={(e) => set({ fuenteDatos: e.target.value })} placeholder="Ventas_Diario — Google Sheets…" className={inp} />
           </div>
+          {f.metodoCaptura === "GOOGLE_SHEETS" && (
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Enlace de Google Sheets</label>
+              <input value={f.hojaUrl} onChange={(e) => set({ hojaUrl: e.target.value })} placeholder="https://docs.google.com/spreadsheets/d/…" className={inp} />
+              <p className="mt-1 text-[11px] text-gray-400">
+                La hoja debe estar pública («Cualquiera con el enlace: Lector») con columnas <b>Codigo</b>, <b>Valor Actual</b> y <b>% Cumplimiento</b> (0–100). Se empareja por el código de este KPI.
+              </p>
+            </div>
+          )}
           <label className="sm:col-span-2 flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={f.activo} onChange={(e) => set({ activo: e.target.checked })} />
             KPI activo (visible en el tablero de Indicadores)

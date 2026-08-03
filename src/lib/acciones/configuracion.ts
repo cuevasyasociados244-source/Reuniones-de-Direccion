@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireGlobal } from "@/lib/session";
 import { Frequency, KpiSense, CaptureMethod, KpiStatus } from "@prisma/client";
+import { leerHojaKpis } from "@/lib/googleSheets";
 
 export type ConfigState = { error?: string; ok?: string };
 
@@ -61,6 +62,7 @@ export type KpiInput = {
   pct: number;
   fuenteDatos: string;
   metodoCaptura: string;
+  hojaUrl: string;
   activo: boolean;
 };
 
@@ -81,6 +83,7 @@ function normalizaKpi(data: KpiInput) {
     estado: kpiEstado(pct),
     fuenteDatos: data.fuenteDatos.trim(),
     metodoCaptura: enumOr(CaptureMethod, data.metodoCaptura, CaptureMethod.MANUAL),
+    hojaUrl: data.hojaUrl.trim(),
     activo: !!data.activo,
   };
 }
@@ -121,15 +124,48 @@ export async function eliminarKpi(id: number): Promise<ConfigState> {
   return { ok: "KPI eliminado." };
 }
 
-// Stub de sincronización: marca la última sincronización de los KPIs con método
-// Google Sheets. La integración real (API de Google Sheets / ERP) queda pendiente.
+// Sincroniza los KPIs con método "Google Sheets": lee cada hoja pública, empareja
+// por código y actualiza valor actual, % de cumplimiento y estado.
 export async function sincronizarKpis(): Promise<ConfigState> {
   await requireGlobal();
-  const r = await prisma.kpi.updateMany({
+  const kpis = await prisma.kpi.findMany({
     where: { metodoCaptura: CaptureMethod.GOOGLE_SHEETS, activo: true },
-    data: { ultimaSync: new Date() },
   });
+  if (kpis.length === 0) return { error: 'No hay KPIs activos con método "Google Sheets".' };
+
+  const cache = new Map<string, Awaited<ReturnType<typeof leerHojaKpis>>>();
+  let actualizados = 0;
+  const noEncontrados: string[] = [];
+  const errores: string[] = [];
+
+  for (const k of kpis) {
+    if (!k.hojaUrl) { errores.push(`${k.codigo}: falta el enlace de la hoja`); continue; }
+    try {
+      let mapa = cache.get(k.hojaUrl);
+      if (!mapa) { mapa = await leerHojaKpis(k.hojaUrl); cache.set(k.hojaUrl, mapa); }
+      const fila = mapa.get(k.codigo.toUpperCase());
+      if (!fila) { noEncontrados.push(k.codigo); continue; }
+      await prisma.kpi.update({
+        where: { id: k.id },
+        data: {
+          valorActual: fila.valorActual || k.valorActual,
+          pct: fila.pct,
+          estado: kpiEstado(fila.pct),
+          ultimaSync: new Date(),
+        },
+      });
+      actualizados++;
+    } catch (e) {
+      errores.push(`${k.codigo}: ${(e as Error).message}`);
+    }
+  }
+
   revalidatePath("/configuracion");
   revalidatePath("/kpis");
-  return { ok: `Sincronización registrada para ${r.count} KPI(s) vinculados. (Integración real pendiente.)` };
+  revalidatePath("/");
+
+  const partes = [`${actualizados} KPI(s) actualizados desde Google Sheets`];
+  if (noEncontrados.length) partes.push(`sin fila coincidente: ${noEncontrados.join(", ")}`);
+  if (errores.length) return { error: `${partes.join(" · ")}. Problemas: ${errores.join(" | ")}` };
+  return { ok: partes.join(" · ") + "." };
 }

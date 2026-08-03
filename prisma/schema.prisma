@@ -192,6 +192,7 @@ model Kpi {
   estado         KpiStatus     @default(FUERA) // CALCULADO desde pct; nunca manual
   fuenteDatos    String        @default("")
   metodoCaptura  CaptureMethod @default(MANUAL)
+  hojaUrl        String        @default("") // enlace de Google Sheets (método GOOGLE_SHEETS)
   activo         Boolean       @default(true)
   ultimaSync     DateTime? // solo aplica a método GOOGLE_SHEETS / ERP
 

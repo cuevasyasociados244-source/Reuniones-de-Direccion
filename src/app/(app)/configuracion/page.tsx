@@ -28,6 +28,7 @@ export default async function ConfiguracionPage() {
     estado: k.estado,
     fuenteDatos: k.fuenteDatos,
     metodoCaptura: k.metodoCaptura,
+    hojaUrl: k.hojaUrl,
     activo: k.activo,
   }));
 
