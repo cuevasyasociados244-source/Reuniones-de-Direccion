@@ -196,7 +196,8 @@ function Columna({
               {c.responsableNombre} · vence {c.vence}
             </div>
             <ProgressBar value={c.avance} color={color} />
-            {c.responsableId === currentUserId && c.estado !== "VENCIDO" && (
+            {/* El Tablero solo lo ve la Dirección (global), que puede capturar el avance de cualquier compromiso. */}
+            {c.estado !== "VENCIDO" && (
               <AvanceSelector id={c.id} value={c.avance} accent={color} />
             )}
             {onRegistrar && c.estado === "VENCIDO" && (

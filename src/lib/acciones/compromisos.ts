@@ -28,8 +28,10 @@ export async function capturarAvance(
 
   const c = await prisma.commitment.findUnique({ where: { id } });
   if (!c) return { error: "Compromiso no encontrado." };
-  if (c.responsableId !== user.id) {
-    return { error: "Solo el responsable puede capturar el avance." };
+  // La Dirección (alcance global) puede capturar el avance de cualquier compromiso;
+  // los demás solo el de los que son responsables.
+  if (c.responsableId !== user.id && user.scope !== "global") {
+    return { error: "Solo la Dirección o el responsable puede capturar el avance." };
   }
   if (c.estado === "VENCIDO") {
     return { error: "Un compromiso vencido no admite captura de avance." };

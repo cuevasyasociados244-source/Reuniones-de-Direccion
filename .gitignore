@@ -20,3 +20,6 @@ Thumbs.db
 # Uploads (fotos de personas, imágenes de minutas) — no versionar
 /uploads
 /public/uploads
+
+.vercel
+.env*

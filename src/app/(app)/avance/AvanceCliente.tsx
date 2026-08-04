@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import ResultadoModal from "@/components/ResultadoModal";
+import { capturarAvance } from "@/lib/acciones/compromisos";
 
 export type AvanceVM = {
   id: number;
@@ -73,10 +74,14 @@ export default function AvanceCliente({
               ) : (
                 <Ring value={c.avance} color={c.estado === "NO_INICIADO" ? "#94a3b8" : "#2563eb"} />
               )}
+              {/* La Dirección puede fijar el avance de cualquier compromiso desde aquí. */}
+              {esGlobal && c.estado !== "VENCIDO" && (
+                <AvanceSelector id={c.id} value={c.avance} />
+              )}
               {esGlobal && (
                 <button
                   onClick={() => setResultadoFor(c)}
-                  className="rounded-lg bg-info px-3 py-1.5 text-xs font-semibold text-white hover:bg-info-dark"
+                  className="rounded-lg bg-info px-3 py-1.5 text-xs font-semibold text-white hover:bg-info-dark shrink-0"
                 >
                   Registrar resultado
                 </button>
@@ -92,6 +97,40 @@ export default function AvanceCliente({
           onClose={() => setResultadoFor(null)}
         />
       )}
+    </div>
+  );
+}
+
+function AvanceSelector({ id, value }: { id: number; value: number }) {
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  function set(v: number) {
+    setError(null);
+    start(async () => {
+      const r = await capturarAvance(id, v);
+      if (r.error) setError(r.error);
+    });
+  }
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex gap-1">
+        {[25, 50, 75, 100].map((op) => {
+          const sel = value === op;
+          return (
+            <button
+              key={op}
+              type="button"
+              disabled={pending}
+              onClick={() => set(op)}
+              className="rounded-md border px-2 py-1 text-[11px] font-bold transition disabled:opacity-50"
+              style={sel ? { background: "#2563eb", borderColor: "#2563eb", color: "#fff" } : { background: "#fff", borderColor: "#e2e8f0", color: "#64748b" }}
+            >
+              {op}%
+            </button>
+          );
+        })}
+      </div>
+      {error && <span className="text-[10px] text-danger">{error}</span>}
     </div>
   );
 }
