@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import ResultadoModal from "@/components/ResultadoModal";
 import { capturarAvance } from "@/lib/acciones/compromisos";
 
@@ -34,7 +34,8 @@ export default function AvanceCliente({
       <header className="mb-4">
         <h1 className="text-xl font-bold text-gray-900">Avance de Compromisos</h1>
         <p className="text-sm text-gray-500">
-          Consecuencias: toda acción produce un resultado. Vista de solo lectura del avance capturado.
+          Consecuencias: toda acción produce un resultado.{" "}
+          {esGlobal ? "Haz clic en la dona para actualizar el avance de cualquier compromiso." : "Vista del avance capturado."}
         </p>
       </header>
 
@@ -71,12 +72,11 @@ export default function AvanceCliente({
                 <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: "#fde9e9", color: "#dc2626" }}>
                   Vencido
                 </span>
+              ) : esGlobal ? (
+                /* La Dirección: clic en la dona para revelar los botones 25/50/75/100. */
+                <AvanceControl id={c.id} value={c.avance} estado={c.estado} />
               ) : (
                 <Ring value={c.avance} color={c.estado === "NO_INICIADO" ? "#94a3b8" : "#2563eb"} />
-              )}
-              {/* La Dirección puede fijar el avance de cualquier compromiso desde aquí. */}
-              {esGlobal && c.estado !== "VENCIDO" && (
-                <AvanceSelector id={c.id} value={c.avance} />
               )}
               {esGlobal && (
                 <button
@@ -101,36 +101,66 @@ export default function AvanceCliente({
   );
 }
 
-function AvanceSelector({ id, value }: { id: number; value: number }) {
+// Dona clicable: muestra solo el anillo de avance; al hacer clic revela los
+// botones 25/50/75/100 en un popover. Se cierra al elegir un valor o al hacer
+// clic fuera del control.
+function AvanceControl({ id, value, estado }: { id: number; value: number; estado: string }) {
+  const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const color = estado === "NO_INICIADO" ? "#94a3b8" : "#2563eb";
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
   function set(v: number) {
     setError(null);
     start(async () => {
       const r = await capturarAvance(id, v);
       if (r.error) setError(r.error);
+      else setOpen(false);
     });
   }
+
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex gap-1">
-        {[25, 50, 75, 100].map((op) => {
-          const sel = value === op;
-          return (
-            <button
-              key={op}
-              type="button"
-              disabled={pending}
-              onClick={() => set(op)}
-              className="rounded-md border px-2 py-1 text-[11px] font-bold transition disabled:opacity-50"
-              style={sel ? { background: "#2563eb", borderColor: "#2563eb", color: "#fff" } : { background: "#fff", borderColor: "#e2e8f0", color: "#64748b" }}
-            >
-              {op}%
-            </button>
-          );
-        })}
-      </div>
-      {error && <span className="text-[10px] text-danger">{error}</span>}
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        title="Clic para actualizar el avance"
+        className="rounded-full transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-info/40"
+      >
+        <Ring value={value} color={color} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 z-20 rounded-lg border border-gray-200 bg-white shadow-lg p-2 flex flex-col items-end gap-1">
+          <div className="flex gap-1">
+            {[25, 50, 75, 100].map((op) => {
+              const sel = value === op;
+              return (
+                <button
+                  key={op}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => set(op)}
+                  className="rounded-md border px-2 py-1 text-[11px] font-bold transition disabled:opacity-50"
+                  style={sel ? { background: "#2563eb", borderColor: "#2563eb", color: "#fff" } : { background: "#fff", borderColor: "#e2e8f0", color: "#64748b" }}
+                >
+                  {op}%
+                </button>
+              );
+            })}
+          </div>
+          {error && <span className="text-[10px] text-danger">{error}</span>}
+        </div>
+      )}
     </div>
   );
 }

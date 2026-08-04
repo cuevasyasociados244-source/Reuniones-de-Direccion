@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireGlobal } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { fechaCorta } from "@/lib/formato";
-import PrintButton from "./PrintButton";
+import BotonReportePdf from "@/components/BotonReportePdf";
 
 const ESTADO_TEMA: Record<string, string> = { NO_INICIADO: "No iniciado", PROGRESO: "En progreso", COMPLETADO: "Completado" };
 const ESTADO_COMP: Record<string, string> = { NO_INICIADO: "No iniciado", PROGRESO: "En progreso", COMPLETADO: "Completado", VENCIDO: "Vencido" };
@@ -28,11 +28,16 @@ export default async function ReunionPdfPage({ params }: { params: Promise<{ id:
   const completados = r.agenda.filter((a) => a.estado === "COMPLETADO").length;
   const pctAgenda = r.agenda.length ? Math.round((completados / r.agenda.length) * 100) : 0;
 
+  const nombreArchivo = `Reunion-${fechaCorta(r.fecha)}-${r.titulo}`
+    .replace(/[^\p{L}\p{N}\- ]/gu, "")
+    .replace(/\s+/g, "-")
+    .slice(0, 80);
+
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white p-4 print:p-0">
-      <PrintButton />
+      <BotonReportePdf nodeId="reporte-reunion" filename={nombreArchivo} />
 
-      <div className="mx-auto max-w-4xl bg-white shadow print:shadow-none flex overflow-hidden rounded-xl print:rounded-none" style={{ minHeight: "60vh" }}>
+      <div id="reporte-reunion" className="mx-auto max-w-4xl bg-white shadow print:shadow-none flex overflow-hidden rounded-xl print:rounded-none" style={{ minHeight: "60vh" }}>
         {/* Barra lateral oscura */}
         <aside className="w-64 shrink-0 bg-brand-sidebar text-white p-6" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
           <div className="text-[11px] uppercase tracking-wide text-white/60 mb-1">Integra One RCA</div>

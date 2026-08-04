@@ -73,12 +73,22 @@ export default function CompromisosCliente({
           </p>
         </div>
         {esGlobal && (
-          <button
-            onClick={() => setCrear((v) => !v)}
-            className="rounded-lg bg-info px-4 py-2 text-sm font-semibold text-white hover:bg-info-dark transition"
-          >
-            {crear ? "Cerrar" : "+ Crear compromiso"}
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/compromisos-pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+            >
+              Tablero maestro (PDF)
+            </a>
+            <button
+              onClick={() => setCrear((v) => !v)}
+              className="rounded-lg bg-info px-4 py-2 text-sm font-semibold text-white hover:bg-info-dark transition"
+            >
+              {crear ? "Cerrar" : "+ Crear compromiso"}
+            </button>
+          </div>
         )}
       </header>
 
@@ -259,7 +269,9 @@ function ProgressBar({ value, color }: { value: number; color: string }) {
 }
 
 // Selector de avance: valores fijos 25/50/75/100. Llama al server action.
+// Colapsado por defecto: se muestra un botón "Actualizar avance" que revela las opciones.
 function AvanceSelector({ id, value, accent }: { id: number; value: number; accent: string }) {
+  const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -268,7 +280,21 @@ function AvanceSelector({ id, value, accent }: { id: number; value: number; acce
     start(async () => {
       const r = await capturarAvance(id, v);
       if (r.error) setError(r.error);
+      else setOpen(false);
     });
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-2 text-[11px] font-semibold hover:underline"
+        style={{ color: accent }}
+      >
+        Actualizar avance
+      </button>
+    );
   }
 
   return (
