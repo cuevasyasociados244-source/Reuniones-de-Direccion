@@ -33,6 +33,15 @@ export default async function CompromisosPdfPage() {
   const cuenta = (e: string) => lista.filter((c) => c.estado === e).length;
   const avancePromedio = total ? Math.round(lista.reduce((s, c) => s + c.avance, 0) / total) : 0;
 
+  // Agrupar por responsable (lista ya viene ordenada por estado/vence dentro de cada grupo).
+  const grupos = new Map<string, typeof lista>();
+  for (const c of lista) {
+    const nombre = c.responsable?.nombre ?? "Sin responsable";
+    if (!grupos.has(nombre)) grupos.set(nombre, []);
+    grupos.get(nombre)!.push(c);
+  }
+  const gruposOrdenados = [...grupos.entries()].sort((a, b) => a[0].localeCompare(b[0], "es"));
+
   const hoy = new Date();
   const generado = fechaCorta(hoy);
 
@@ -68,53 +77,58 @@ export default async function CompromisosPdfPage() {
           <Resumen etiqueta="Avance prom." valor={`${avancePromedio}%`} color="#16a34a" />
         </div>
 
-        {/* Tabla */}
-        <div className="px-8 py-5">
+        {/* Secciones por responsable */}
+        <div className="px-8 py-5 space-y-6">
           {lista.length === 0 ? (
             <p className="text-sm text-gray-400">No hay compromisos registrados.</p>
           ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-200">
-                  <th className="py-2 pr-2 w-6">#</th>
-                  <th className="py-2 pr-3">Compromiso</th>
-                  <th className="py-2 pr-3">Responsable</th>
-                  <th className="py-2 pr-3">Área</th>
-                  <th className="py-2 pr-3">Prioridad</th>
-                  <th className="py-2 pr-3">Vence</th>
-                  <th className="py-2 pr-3">Estado</th>
-                  <th className="py-2 pr-2 text-right">Avance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lista.map((c, i) => {
-                  const e = ESTADO[c.estado] ?? ESTADO.NO_INICIADO;
-                  const p = PRIORIDAD[c.prioridad] ?? PRIORIDAD.MEDIA;
-                  return (
-                    <tr key={c.id} className="border-b border-gray-100 align-top" style={{ pageBreakInside: "avoid" }}>
-                      <td className="py-2.5 pr-2 text-xs text-gray-400">{i + 1}</td>
-                      <td className="py-2.5 pr-3">
-                        <div className="text-sm font-medium text-gray-900 leading-snug">{c.titulo}</div>
-                        {c.indicador && <div className="text-[11px] text-gray-400 mt-0.5">{c.indicador}</div>}
-                      </td>
-                      <td className="py-2.5 pr-3 text-xs text-gray-600">{c.responsable?.nombre ?? "—"}</td>
-                      <td className="py-2.5 pr-3 text-xs text-gray-600">{c.area || "—"}</td>
-                      <td className="py-2.5 pr-3 text-xs font-semibold" style={{ color: p.color }}>{p.txt}</td>
-                      <td className="py-2.5 pr-3 text-xs text-gray-600 whitespace-nowrap">{fechaCorta(c.vence)}</td>
-                      <td className="py-2.5 pr-3">
-                        <span
-                          className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
-                          style={{ background: e.bg, color: e.color, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
-                        >
-                          {e.txt}
-                        </span>
-                      </td>
-                      <td className="py-2.5 pr-2 text-right text-xs font-bold text-gray-700">{c.avance}%</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            gruposOrdenados.map(([nombre, items]) => {
+              const prom = Math.round(items.reduce((s, c) => s + c.avance, 0) / items.length);
+              return (
+                <section key={nombre} style={{ pageBreakInside: "avoid" }}>
+                  {/* Encabezado del responsable */}
+                  <div className="flex items-center gap-2 border-b-2 border-gray-200 pb-1.5 mb-2">
+                    <h2 className="text-sm font-bold text-gray-900">{nombre}</h2>
+                    <span className="text-[10px] font-bold text-white rounded-full px-2 py-0.5" style={{ background: "#2c1c72", printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+                      {items.length}
+                    </span>
+                    <span className="text-[11px] text-gray-400 ml-auto">Avance prom. {prom}%</span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {items.map((c) => {
+                      const e = ESTADO[c.estado] ?? ESTADO.NO_INICIADO;
+                      const p = PRIORIDAD[c.prioridad] ?? PRIORIDAD.MEDIA;
+                      return (
+                        <div key={c.id} className="border border-gray-100 rounded-lg px-3 py-2.5" style={{ pageBreakInside: "avoid" }}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-gray-900 leading-snug">{c.titulo}</div>
+                              {c.descripcion && <p className="text-xs text-gray-600 mt-1 leading-snug">{c.descripcion}</p>}
+                            </div>
+                            <span
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"
+                              style={{ background: e.bg, color: e.color, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
+                            >
+                              {e.txt}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500 mt-1.5">
+                            <span>{c.area || "Sin área"}</span>
+                            <span>·</span>
+                            <span>vence {fechaCorta(c.vence)}</span>
+                            <span>·</span>
+                            <span>prioridad <span style={{ color: p.color, fontWeight: 600 }}>{p.txt}</span></span>
+                            {c.indicador && <><span>·</span><span>{c.indicador}</span></>}
+                            <span className="ml-auto font-bold text-gray-700">{c.avance}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })
           )}
         </div>
       </div>
