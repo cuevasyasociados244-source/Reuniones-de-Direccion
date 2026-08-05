@@ -3,7 +3,6 @@ import { requireGlobal } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { fechaCorta } from "@/lib/formato";
 import BotonReportePdf from "@/components/BotonReportePdf";
-import { LOGO_PIONEROS } from "@/lib/logoPioneros";
 
 const ESTADO_TEMA: Record<string, string> = { NO_INICIADO: "No iniciado", PROGRESO: "En progreso", COMPLETADO: "Completado" };
 const ESTADO_COMP: Record<string, string> = { NO_INICIADO: "No iniciado", PROGRESO: "En progreso", COMPLETADO: "Completado", VENCIDO: "Vencido" };
@@ -41,10 +40,7 @@ export default async function ReunionPdfPage({ params }: { params: Promise<{ id:
       <div id="reporte-reunion" className="mx-auto max-w-4xl bg-white shadow print:shadow-none flex overflow-hidden rounded-xl print:rounded-none" style={{ minHeight: "60vh" }}>
         {/* Barra lateral oscura */}
         <aside className="w-64 shrink-0 bg-brand-sidebar text-white p-6" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
-          <div className="mb-4 inline-block rounded-lg bg-white p-2" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={LOGO_PIONEROS} alt="Cremería Los Pioneros" style={{ width: 150, height: "auto", display: "block" }} />
-          </div>
+          <div className="text-[11px] uppercase tracking-wide text-white/60 mb-1">Cremería Los Pioneros</div>
           <h1 className="text-lg font-bold leading-snug">{r.titulo}</h1>
 
           <dl className="mt-6 space-y-3 text-sm">
