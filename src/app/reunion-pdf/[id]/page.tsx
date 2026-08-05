@@ -3,6 +3,7 @@ import { requireGlobal } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { fechaCorta } from "@/lib/formato";
 import BotonReportePdf from "@/components/BotonReportePdf";
+import { LOGO_PIONEROS } from "@/lib/logoPioneros";
 
 const ESTADO_TEMA: Record<string, string> = { NO_INICIADO: "No iniciado", PROGRESO: "En progreso", COMPLETADO: "Completado" };
 const ESTADO_COMP: Record<string, string> = { NO_INICIADO: "No iniciado", PROGRESO: "En progreso", COMPLETADO: "Completado", VENCIDO: "Vencido" };
@@ -42,7 +43,7 @@ export default async function ReunionPdfPage({ params }: { params: Promise<{ id:
         <aside className="w-64 shrink-0 bg-brand-sidebar text-white p-6" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
           <div className="mb-4 inline-block rounded-lg bg-white p-2" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-cremeria-los-pioneros.jpg" alt="Cremería Los Pioneros" style={{ width: 150, height: "auto", display: "block" }} />
+            <img src={LOGO_PIONEROS} alt="Cremería Los Pioneros" style={{ width: 150, height: "auto", display: "block" }} />
           </div>
           <h1 className="text-lg font-bold leading-snug">{r.titulo}</h1>
 

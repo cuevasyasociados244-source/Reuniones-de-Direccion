@@ -2,6 +2,7 @@ import { requireGlobal } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { fechaCorta } from "@/lib/formato";
 import BotonReportePdf from "@/components/BotonReportePdf";
+import { LOGO_PIONEROS } from "@/lib/logoPioneros";
 
 const ESTADO: Record<string, { txt: string; bg: string; color: string }> = {
   NO_INICIADO: { txt: "No iniciado", bg: "#f1f5f9", color: "#64748b" },
@@ -65,7 +66,7 @@ export default async function CompromisosPdfPage() {
         >
           <div className="mb-3 inline-block rounded-lg bg-white p-2" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-cremeria-los-pioneros.jpg" alt="Cremería Los Pioneros" style={{ width: 160, height: "auto", display: "block" }} />
+            <img src={LOGO_PIONEROS} alt="Cremería Los Pioneros" style={{ width: 160, height: "auto", display: "block" }} />
           </div>
           <h1 className="text-2xl font-bold">Tablero Maestro de Compromisos</h1>
           <p className="text-sm text-white/70 mt-1">Generado el {generado} · {total} compromisos en total</p>

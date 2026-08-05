@@ -16,6 +16,31 @@ export async function descargarNodoComoPdf(node: HTMLElement, filename: string):
     windowWidth: node.scrollWidth,
   });
 
+  // html2canvas no dibuja de forma confiable las etiquetas <img> (aparecen en
+  // blanco). Las compositamos manualmente sobre el canvas con drawImage, que sí
+  // funciona con imágenes ya cargadas (incluidos data URIs, sin problemas de CORS).
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    const escala = canvas.width / node.offsetWidth;
+    const nr = node.getBoundingClientRect();
+    node.querySelectorAll("img").forEach((im) => {
+      const el = im as HTMLImageElement;
+      if (!el.complete || el.naturalWidth === 0) return;
+      const r = el.getBoundingClientRect();
+      try {
+        ctx.drawImage(
+          el,
+          (r.left - nr.left) * escala,
+          (r.top - nr.top) * escala,
+          r.width * escala,
+          r.height * escala
+        );
+      } catch {
+        /* ignorar imágenes que no se puedan dibujar */
+      }
+    });
+  }
+
   const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
